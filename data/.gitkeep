@@ -1,0 +1,3 @@
+# This file keeps the data/ directory tracked by git.
+# Actual dataset files are excluded via .gitignore.
+# See README.md for dataset download instructions.

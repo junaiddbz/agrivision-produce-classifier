@@ -1,0 +1,6 @@
+"""
+results/.gitkeep
+Results directory — generated files are excluded from git via .gitignore.
+Selectively commit final output images (confusion_matrix.png, training_curves.png)
+to showcase results in the repository.
+"""

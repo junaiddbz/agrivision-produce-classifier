@@ -1,0 +1,52 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Raw dataset (large files, downloaded via download_data.py)
+data/*
+!data/.gitkeep
+*.zip
+*.tar.gz
+
+# Model weights — keep the lightweight 15MB best_model.pth for 1-click Streamlit deployment
+*.pt
+*.ckpt
+*.pth
+!results/best_model.pth
+
+# Results directory
+results/*
+!results/.gitkeep
+!results/best_model.pth
+!results/training_curves.png
+!results/confusion_matrix.png
+!results/gradcam.png
+!results/misclassifications.png
+!results/classification_report.csv
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Streamlit
+.streamlit/secrets.toml
