@@ -108,6 +108,11 @@ def predict(
     Returns:
         List of (class_name, probability) tuples, sorted by probability desc.
     """
+    model.eval()
+    if hasattr(model, "features") and len(model.features) > 0:
+        model.features[-1]._forward_hooks.clear()
+        model.features[-1]._backward_hooks.clear()
+
     transform = get_transforms("test", image_size)
     tensor = transform(image.convert("RGB")).unsqueeze(0).to(device)
 

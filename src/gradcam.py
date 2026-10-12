@@ -3,10 +3,10 @@ src/gradcam.py
 --------------
 Native PyTorch Grad-CAM (Gradient-weighted Class Activation Mapping) implementation.
 Extracts class activation heatmaps directly from the convolutional backbone
-without external dependencies or garbage-collection warnings.
+without external dependencies, using robust module hooks with guaranteed cleanup.
 """
 
-from typing import Optional, Tuple
+from typing import Tuple
 import cv2
 import numpy as np
 from PIL import Image
@@ -46,38 +46,51 @@ def generate_gradcam(
     """
     model.eval()
 
-    # Enable gradients across model parameters for backward hook
-    for param in model.parameters():
-        param.requires_grad = True
+    target_layer = model.features[-1]
 
-    # Hooks to capture activations and gradients on the last convolutional block
+    # Clear any stale hooks
+    target_layer._forward_hooks.clear()
+    target_layer._backward_hooks.clear()
+
     activations = []
     gradients = []
 
-    def forward_hook(module, input_tensor, output_tensor):
-        activations.append(output_tensor)
-        output_tensor.register_hook(lambda grad: gradients.append(grad))
+    def forward_hook(module, inp, out):
+        activations.append(out.detach())
 
-    # Target the last feature block of EfficientNet-B0 (features[-1])
-    hook_handle = model.features[-1].register_forward_hook(forward_hook)
+    def backward_hook(module, grad_in, grad_out):
+        gradients.append(grad_out[0].detach())
 
-    # Transform image for model input
-    transform = get_transforms("test", image_size)
-    rgb_img = image.convert("RGB")
-    input_tensor = transform(rgb_img).unsqueeze(0).to(device)
+    h_forward = target_layer.register_forward_hook(forward_hook)
+    h_backward = target_layer.register_full_backward_hook(backward_hook)
 
-    # Clear gradients and run forward pass
-    model.zero_grad()
-    logits = model(input_tensor)
+    try:
+        with torch.enable_grad():
+            for param in model.parameters():
+                param.requires_grad = True
 
-    # Compute target score and backpropagate
-    target_score = logits[0, target_class_idx]
-    target_score.backward()
+            transform = get_transforms("test", image_size)
+            rgb_img = image.convert("RGB")
+            input_tensor = transform(rgb_img).unsqueeze(0).to(device)
 
-    # Detach and remove hook immediately
-    hook_handle.remove()
+            model.zero_grad()
+            logits = model(input_tensor)
 
-    # Extract feature activations and gradients
+            target_score = logits[0, target_class_idx]
+            target_score.backward()
+
+    finally:
+        # Guarantee hook removal under all circumstances
+        h_forward.remove()
+        h_backward.remove()
+        model.zero_grad()
+        for param in model.parameters():
+            param.requires_grad = False
+        model.eval()
+
+    if not activations or not gradients:
+        raise RuntimeError("Grad-CAM failed to capture activations or gradients.")
+
     act = activations[0]  # shape: [1, 1280, 7, 7]
     grad = gradients[0]   # shape: [1, 1280, 7, 7]
 
@@ -90,7 +103,7 @@ def generate_gradcam(
 
     # Bilinear upsample to input resolution
     cam = F.interpolate(cam, size=(image_size, image_size), mode="bilinear", align_corners=False)
-    cam = cam.squeeze().detach().cpu().numpy()
+    cam = cam.squeeze().cpu().numpy()
 
     # Min-max normalization
     cam_min, cam_max = cam.min(), cam.max()
