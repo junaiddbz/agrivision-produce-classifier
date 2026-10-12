@@ -28,14 +28,12 @@ import seaborn as sns
 import torch
 import torch.nn as nn
 from PIL import Image
-from pytorch_grad_cam import GradCAM
-from pytorch_grad_cam.utils.image import show_cam_on_image
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from sklearn.metrics import classification_report, confusion_matrix
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.dataset import ProduceDataset, get_transforms
+from src.gradcam import generate_gradcam
 from src.model import ProduceClassifier
 
 
@@ -207,13 +205,6 @@ def plot_gradcam(
         save_path:    Output PNG path.
         image_size:   Should match training resolution (224).
     """
-    # Ensure parameters require gradients for GradCAM backprop
-    for param in model.parameters():
-        param.requires_grad = True
-
-    target_layer = [model.features[-1]]  # Last conv block of EfficientNet-B0
-    cam = GradCAM(model=model, target_layers=target_layer)
-
     transform = get_transforms("test", image_size)
 
     n = len(image_paths)
@@ -221,33 +212,29 @@ def plot_gradcam(
     if n == 1:
         axes = [axes]
 
-    _inv_mean = np.array([0.485, 0.456, 0.406])
-    _inv_std  = np.array([0.229, 0.224, 0.225])
-
-    model.eval()
     for i, img_path in enumerate(image_paths):
-        pil_img    = Image.open(img_path).convert("RGB")
+        pil_img = Image.open(img_path).convert("RGB")
         img_tensor = transform(pil_img).unsqueeze(0).to(device)
 
         with torch.no_grad():
-            logits  = model(img_tensor)
+            logits = model(img_tensor)
             pred_idx = logits.argmax(dim=1).item()
 
-        grayscale_cam = cam(
-            input_tensor=img_tensor,
-            targets=[ClassifierOutputTarget(pred_idx)],
-        )[0]
+        orig_crop, overlay_img, _, _ = generate_gradcam(
+            image=pil_img,
+            model=model,
+            target_class_idx=pred_idx,
+            device=device,
+            image_size=image_size,
+            colormap_name="JET",
+            alpha=0.5,
+        )
 
-        # Reconstruct RGB for overlay
-        img_np = img_tensor.squeeze().cpu().permute(1, 2, 0).numpy()
-        img_np = (img_np * _inv_std + _inv_mean).clip(0, 1).astype(np.float32)
-        cam_image = show_cam_on_image(img_np, grayscale_cam, use_rgb=True)
-
-        axes[i][0].imshow(img_np)
+        axes[i][0].imshow(orig_crop)
         axes[i][0].set_title(f"Original\nPred: {idx_to_class[pred_idx]}", fontsize=9)
         axes[i][0].axis("off")
 
-        axes[i][1].imshow(cam_image)
+        axes[i][1].imshow(overlay_img)
         axes[i][1].set_title("GradCAM Activation", fontsize=9)
         axes[i][1].axis("off")
 
