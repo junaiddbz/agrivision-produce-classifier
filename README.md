@@ -88,6 +88,8 @@ Fruits & Vegetable Classifier/
 |
 +-- notebooks/
 |   +-- 01_exploration.ipynb      # EDA: class distribution, sample gallery, image statistics
+|   +-- 02_training_and_evaluation.ipynb # End-to-end training, evaluation, and Grad-CAM
+|   +-- README.md                 # Notebook documentation and Colab badges
 |
 +-- src/
 |   +-- __init__.py
