@@ -1,9 +1,13 @@
 # Fruit and Vegetable Classifier
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://agrivision-appuce-classifier-nqki8gpuziejbuzkqx2eiy.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B.svg)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Author](https://img.shields.io/badge/Author-junaiddbz-10B981.svg)](https://github.com/junaiddbz)
+
+> **Live Application:** [agrivision-appuce-classifier-nqki8gpuziejbuzkqx2eiy.streamlit.app](https://agrivision-appuce-classifier-nqki8gpuziejbuzkqx2eiy.streamlit.app/)  
+> **Developed by:** [junaiddbz](https://github.com/junaiddbz)
 
 An end-to-end deep learning image classification system that identifies **36 distinct fruit and vegetable categories** from a single photograph. Built with PyTorch, EfficientNet-B0 transfer learning, Grad-CAM visual explainability, and an interactive Streamlit web application.
 
@@ -20,7 +24,7 @@ This project demonstrates a complete machine learning pipeline from raw dataset 
 | **Dataset** | Kaggle -- Fruit and Vegetable Image Recognition (~3,800 images) |
 | **Test Accuracy** | **94.15%** |
 | **Macro F1-Score** | **93.96%** |
-| **Demo** | Streamlit web application |
+| **Live Demo** | [agrivision-appuce-classifier-nqki8gpuziejbuzkqx2eiy.streamlit.app](https://agrivision-appuce-classifier-nqki8gpuziejbuzkqx2eiy.streamlit.app/) |
 
 ---
 
@@ -144,8 +148,13 @@ streamlit run app.py
 
 **Kritik Seth** -- [Fruit and Vegetable Image Recognition](https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition) (36 classes, ~3,800 images), available on Kaggle.
 
+## Author
+
+Developed by **[junaiddbz](https://github.com/junaiddbz)**.
+
 ---
 
 ## License
 
 This project is open-source and available under the [MIT License](LICENSE).
+
